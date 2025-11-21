@@ -1,0 +1,179 @@
+<!DOCTYPE html><html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Expense Tracker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 20px;
+      }.container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  }
+
+  h2 {
+    text-align: center;
+    color: #333;
+  }
+
+  input,
+  select,
+  button {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 5px;
+    border: 1px solid #aaa;
+  }
+
+  button {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #218838;
+  }
+
+  ul li {
+    list-style: none;
+    background: #eee;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .summary-box {
+    background: #dff9fb;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+</style>
+
+  </head>
+  <body>
+    <div class="container">
+      <h2>Smart Expense Tracker</h2><div class="summary-box">
+    Total Expense: ₹<span id="total-expense">0</span>
+  </div>
+
+  <select id="category">
+    <option value="Food">🍔 Food</option>
+    <option value="Travel">✈️ Travel</option>
+    <option value="Shopping">🛍 Shopping</option>
+    <option value="Bills">💡 Bills</option>
+    <option value="Other">📦 Other</option>
+  </select>
+
+  <input
+    type="number"
+    id="amount"
+    placeholder="Enter Amount"
+  />
+  <input
+    type="text"
+    id="description"
+    placeholder="Enter Description"
+  />
+  <button onclick="addExpense()">Add Expense</button>
+
+  <ul id="expense-list"></ul>
+
+  <canvas id="expenseChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+
+  function addExpense() {
+    const category = document.getElementById("category").value;
+    const amount = parseFloat(document.getElementById("amount").value);
+    const description =
+      document.getElementById("description").value.trim();
+
+    if (!amount || !description) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    const expense = { category, amount, description };
+    expenses.push(expense);
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+
+    document.getElementById("amount").value = "";
+    document.getElementById("description").value = "";
+
+    displayExpenses();
+    updateChart();
+  }
+
+  function displayExpenses() {
+    const list = document.getElementById("expense-list");
+    list.innerHTML = "";
+    let total = 0;
+
+    expenses.forEach((exp, index) => {
+      total += exp.amount;
+
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <span>${exp.category} - ₹${exp.amount}</span>
+        <span>${exp.description}</span>
+      `;
+      list.appendChild(li);
+    });
+
+    document.getElementById("total-expense").innerText = total;
+  }
+
+  let chart;
+  function updateChart() {
+    const ctx = document.getElementById("expenseChart");
+    const categoryTotals = {};
+
+    expenses.forEach((e) => {
+      categoryTotals[e.category] =
+        (categoryTotals[e.category] || 0) + e.amount;
+    });
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: Object.keys(categoryTotals),
+        datasets: [
+          {
+            data: Object.values(categoryTotals),
+          },
+        ],
+      },
+    });
+  }
+
+  displayExpenses();
+  updateChart();
+</script>
+
+  </body>
+</html>
